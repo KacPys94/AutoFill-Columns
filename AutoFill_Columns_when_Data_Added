@@ -1,0 +1,82 @@
+//Script is exectuded when any changes are done in the Sheet
+function onChange(e) {
+  
+  let activeSheet = e.source.getActiveSheet()
+  let sourceRange = e.range
+  //|| sourceRange.getColumn() !== 1
+  
+  //check if the proper sheet is activated
+  //sheet_name is the name of the sheet when data will be paste
+  if(activeSheet.getName() !== "sheet_name"){ 
+   console.log("Changes in other sheet!")
+    if(activeSheet.getName() == "sheet_name"){
+     console.log("Only column is wrong!")
+    }
+    return -1
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("sheet_name")
+  //get last row for the first column
+  let lastRow = lastRowForColumn(ss,1)
+  //get the last row and last row -1 for the column which has to be filled down
+  //let number 
+  //number of the first column to be filled
+  let rowx = lastRowForColumn(ss,number)-1
+  let row_2 = lastRowForColumn(ss,number)
+  
+  //create an array with letters corresponding to columns
+  let arr = ["W", "X", "Y","Z","AA","AB","AC","AD","AE"]
+  //map the letters with the row numbers to the new array
+  let newarr = arr.map(function(x){return x + rowx+":"+x+row_2})
+  //it can be written also this way
+  //let newarr = arr.map(x => x + rowx + ":" + x + row_2)
+  console.log(newarr)
+  
+  //set the number of the first column to be filled
+  let j = 23
+  //loop through the mapped array
+  for(let i=0; i<newarr.length; i++){
+    let range2 = ss.getRange(newarr[i])
+    //if greater than the given value corresponding to the last column, exit
+    if(j>32){
+      return -1
+    }
+    else{
+      //check if row numbers are correct
+      console.log(rowx)
+      console.log(lastRow-2)
+      //autofill the certain column to the last row of pasted values
+      range2.autoFill(ss.getRange(rowx,j,lastRow-rowx+1), SpreadsheetApp.AutoFillSeries.DEFAULT_SERIES)
+    }
+    //increase the number of a column
+   j++;
+  }
+  //add date to the last column, so the changes can be observed
+  addDate(ss,lastRow);
+}
+
+
+function lastRowForColumn(sheet, column){
+  // Get the last row with data for the whole sheet.
+  let numRows = sheet.getLastRow();
+  
+  // Get all data for the given column
+  let data = sheet.getRange(1, column, numRows).getValues();
+  
+  // Iterate backwards and find first non empty cell
+  for(let f = data.length - 1 ; f >= 0 ; f--){
+    if (data[f][0] != null && data[f][0] != ""){
+      return f + 1;
+    }
+  }
+}
+function addDate(ss, lastRow){
+  //date is given in the last column
+  let lastColumn = ss.getLastColumn();
+  let lRcolAF = lastRowForColumn(ss,lastColumn);
+  //if the last row of the last column differs from the column with data, fill the last column with the date
+  if(lRcolAF !== lastRow){
+    ss.getRange(lRcolAF+1,lastColumn,lastRow-lRcolAF).setValue(Utilities.formatDate(new Date(), "GMT+1", "yyyy-MM-dd"));
+  }
+  
+}
